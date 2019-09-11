@@ -1,0 +1,17 @@
+/**
+ * @file
+ * Needed until https://www.drupal.org/project/drupal/issues/3080698 is fixed.
+ */
+
+#drupal-off-canvas select {
+  -webkit-appearance: unset !important;
+  -moz-appearance: unset !important;
+}
+#drupal-off-canvas select:not([multiple]) {
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
+}
+#drupal-off-canvas select[multiple] option {
+  color: initial;
+  background: initial;
+}
