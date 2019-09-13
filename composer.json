@@ -22,7 +22,6 @@
     },
     "require": {
       "drupal/core": "^8.6"
-    },
-    "require-dev": {}
+    }
   }
   
