@@ -6,5 +6,5 @@ type: module
 core: 8.x
 
 dependencies:
-  - dcf_classes:dcf_classes
+  - dcf:dcf_classes
   - drupal:layout_discovery
