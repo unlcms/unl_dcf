@@ -13,7 +13,7 @@ dcf_classes.classes:
       sequence:
         type: string
     section_packages:
-      type: mapping
+      type: sequence
       label: 'Section packages'
       sequence:
         type: string
