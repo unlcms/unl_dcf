@@ -36,7 +36,7 @@ class Settings extends ConfigFormBase {
       '#type' => 'textarea',
       '#title' => $this->t('Heading Classes'),
       '#description' => $this->t('One per line. Do not include a dot.'),
-      '#default_value' => implode(PHP_EOL, $config->get('heading')),
+      '#default_value' => ($config->get('heading')) ? implode(PHP_EOL, $config->get('heading')) : '',
       '#rows' => 15,
     ];
 
@@ -44,22 +44,27 @@ class Settings extends ConfigFormBase {
       '#type' => 'textarea',
       '#title' => $this->t('Section Classes'),
       '#description' => $this->t('One per line. Do not include a dot.'),
-      '#default_value' => implode(PHP_EOL, $config->get('section')),
+      '#default_value' => ($config->get('section')) ? implode(PHP_EOL, $config->get('section')) : '',
       '#rows' => 15,
     ];
 
-    $section_packages = $config->get('section_packages');
-    $options = [];
-    foreach ($section_packages as $key => $value) {
-      $options[] = $key . '|' . $value;
-    }
     $form['section_packages'] = [
       '#type' => 'textarea',
       '#title' => $this->t('Section Packages'),
       '#description' => $this->t('Add sets of classes using a format of Name|classes, with each definition on a new line and classes separated by a space.'),
-      '#default_value' => implode(PHP_EOL, $options),
       '#rows' => 10,
     ];
+    $section_packages = $config->get('section_packages');
+    if ($section_packages) {
+      $options = [];
+      foreach ($section_packages as $key => $value) {
+        $options[] = $key . '|' . $value;
+      }
+      $form['section_packages']['#default_value'] = implode(PHP_EOL, $options);
+    }
+    else {
+      $form['section_packages']['#default_value'] = '';
+    }
 
     return parent::buildForm($form, $form_state);
   }
