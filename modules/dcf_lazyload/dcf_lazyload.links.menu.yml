@@ -1,0 +1,5 @@
+dcf_lazyload.config:
+  title: 'DCF Lazy Loading'
+  parent: system.admin_config_media
+  description: 'Configure DCF Lazy Loading'
+  route_name: dcf_lazyload.config

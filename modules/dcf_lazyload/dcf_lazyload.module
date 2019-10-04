@@ -1,0 +1,226 @@
+<?php
+
+/**
+ * @file
+ * This module provides DCF Lazy Loading integration.
+ */
+
+use Drupal\Component\Utility\Random;
+use Drupal\Core\Entity\Entity\EntityViewDisplay;
+use Drupal\Core\Form\FormState;
+use Drupal\Core\Template\Attribute;
+use Drupal\Core\Template\AttributeString;
+
+/**
+ * Implements hook_field_formatter_third_party_settings_form().
+ */
+function dcf_lazyload_field_formatter_third_party_settings_form($plugin, $field_definition, $view_mode, $form, $form_state) {
+  if ($plugin->getPluginId() == 'responsive_image') {
+    $element = [];
+    $element['dcf_lazyload_enable'] = [
+      '#type' => 'checkbox',
+      '#title' => t('Enable DCF Lazy Loading'),
+      '#default_value' => $plugin->getThirdPartySetting('dcf_lazyload', 'dcf_lazyload_enable'),
+      '#value_callback' => '_dcf_lazyload_checkbox_boolean',
+    ];
+    $element['dcf_lazyload_sizes'] = [
+      '#type' => 'checkbox',
+      '#title' => t('Automatically calculate "sizes" attribute'),
+      '#default_value' => $plugin->getThirdPartySetting('dcf_lazyload', 'dcf_lazyload_sizes'),
+      '#value_callback' => '_dcf_lazyload_checkbox_boolean',
+      '#states' => [
+        'visible' => [
+          ':input[name="fields[field_image][settings_edit_form][third_party_settings][dcf_lazyload][dcf_lazyload_enable]"]' => ['checked' => TRUE],
+        ],
+      ],
+    ];
+    return $element;
+  }
+}
+
+/**
+ * Callback function to convert checkbox values to boolean before submitting.
+ *
+ * @param array $element
+ *   An array representing the element being rendered.
+ * @param int $input
+ *   An integer representing a boolean value.
+ * @param \Drupal\Core\Form\FormState $form_state
+ *   The current state of the form.
+ *
+ * @return bool
+ *   The input integer cast to a boolean value.
+ */
+function _dcf_lazyload_checkbox_boolean(array $element, $input, FormState $form_state) {
+  // If $input is false, then return default value per API docs.
+  if ($input === FALSE) {
+    return $element['#default_value'];
+  }
+  return (bool) $input;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary_alter().
+ */
+function dcf_lazyload_field_formatter_settings_summary_alter(&$summary, $context) {
+  if ($context['formatter']->getPluginId() == 'responsive_image') {
+    if ($context['formatter']->getThirdPartySetting('dcf_lazyload', 'dcf_lazyload_enable')) {
+      $summary[] = t('DCF lazy loading is enabled.');
+    }
+    if ($context['formatter']->getThirdPartySetting('dcf_lazyload', 'dcf_lazyload_sizes')) {
+      $summary[] = t('"Sizes" attribute is auto-calculated');
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_field().
+ */
+function dcf_lazyload_preprocess_field(&$variables) {
+  if ($variables['element']['#formatter'] == 'responsive_image') {
+    $entity = $variables['element']['#object'];
+    $view_mode = $variables['element']['#view_mode'];
+    $field_name = $variables['element']['#field_name'];
+
+    // Get field formatter settings.
+    $entity_display = EntityViewDisplay::collectRenderDisplay($entity, $view_mode);
+    $field_display = $entity_display->getComponent($field_name);
+
+    // Add attributes given field formatter settings.
+    if (isset($field_display['third_party_settings']['dcf_lazyload']['dcf_lazyload_enable'])
+      && $field_display['third_party_settings']['dcf_lazyload']['dcf_lazyload_enable'] == TRUE
+      ) {
+      foreach ($variables['items'] as $key => $item) {
+        $variables['items'][$key]['content']['#item_attributes']['class'][] = 'dcf-lazy-load';
+        $variables['items'][$key]['content']['#item_attributes']['class'][] = 'dcf-ratio-child';
+        $variables['items'][$key]['content']['#item_attributes']['loading'] = 'lazy';
+
+        if (isset($field_display['third_party_settings']['dcf_lazyload']['dcf_lazyload_sizes'])
+          && $field_display['third_party_settings']['dcf_lazyload']['dcf_lazyload_sizes'] == TRUE
+          ) {
+          // The 'sizes' attribute is added to the render array when the
+          // responsive image style is applied, so pass through the desired
+          // value in a 'data-sizes' attribute to rewrite later.
+          $variables['items'][$key]['content']['#item_attributes']['data-sizes'] = 'auto';
+        }
+      }
+
+      // Load lazyload library is so configured.
+      $config = \Drupal::config('dcf_lazyload.settings');
+      if ($config->get('assets_source') == 'module') {
+        $variables['#attached']['library'][] = 'dcf_lazyload/lazyload';
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_responsive_image().
+ */
+function dcf_lazyload_preprocess_responsive_image(&$variables) {
+  // The formatter settings are not available; however, it's possible to
+  // key off of the 'dcf-lazy-load' class.
+  if (isset($variables['attributes']['class']) && in_array('dcf-lazy-load', $variables['attributes']['class'])) {
+    $src = $variables['img_element']['#uri'];
+    $variables['img_element']['#attributes']['data-src'] = new AttributeString('data-src', $src);
+    $variables['img_element']['#uri'] = "data:image/gif;base64,R0lGODlhAQABAIABAP///wAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+
+    $srcset = $variables['img_element']['#attributes']['srcset']->value();
+    $variables['img_element']['#attributes']['data-srcset'] = new AttributeString('data-srcset', $srcset);
+    unset($variables['img_element']['#attributes']['srcset']);
+
+    // Rewrite 'sizes' attribute if 'data-sizes' is set.
+    if (isset($variables['img_element']['#attributes']['data-sizes'])) {
+      $variables['img_element']['#attributes']['sizes'] = new AttributeString('sizes', $variables['img_element']['#attributes']['data-sizes']);
+      unset($variables['img_element']['#attributes']['data-sizes']);
+    }
+
+    $variables['img_element']['#attributes']['data-width'] = $variables['width'];
+    $variables['img_element']['#attributes']['data-height'] = $variables['height'];
+
+    // #suffix is run through Xss::filterAdmin(), so a post-render function
+    // must be used instead to add <noscript>.
+    $variables['img_element']['#post_render'][] = 'dcf_lazyload_postrender';
+  }
+}
+
+/**
+ * Post-render callback function.
+ *
+ * @todo Move to Trait that implements TrustedCallbackInterface when Drupal 8.9 is released.
+ * https://www.drupal.org/node/2966725
+ *
+ * @param string $markup
+ *   The rendered element.
+ * @param array $element
+ *   The element which was rendered (for reference)
+ *
+ * @return string
+ *   Markup altered as necessary.
+ */
+function dcf_lazyload_postrender($markup, array $element) {
+  // Generate attributes object for <noscript> element.
+  $no_script_attributes = new Attribute();
+  foreach ($element['#attributes'] as $attr_name => $attr_value) {
+    $no_script_attributes[$attr_name] = $attr_value;
+  }
+
+  $no_script_attributes['src'] = $element['#attributes']['data-src'];
+  unset($no_script_attributes['data-src']);
+  $no_script_attributes['srcset'] = $element['#attributes']['data-srcset'];
+  unset($no_script_attributes['data-srcset']);
+
+  $no_script_attributes['alt'] = $element['#alt'];
+
+  // Remove DCF Lazy Loading classes.
+  $class_remove = [
+    'dcf-lazy-load',
+  ];
+  $no_script_attributes['class'] = array_diff($no_script_attributes['class']->value(), $class_remove);
+
+  // Set wrapper classes.
+  $height = $element['#attributes']['data-height'];
+  $width = $element['#attributes']['data-width'];
+  $ratio = round($width / $height, 2);
+
+  $wrapper_attributes = new Attribute();
+  $wrapper_attributes['class'] = ['dcf-ratio'];
+  $style_string = '';
+
+  switch ($ratio) {
+    case 1.78:
+      $wrapper_attributes['class'][] = 'dcf-ratio-16x9';
+      break;
+
+    case 0.56:
+      $wrapper_attributes['class'][] = 'dcf-ratio-9x16';
+      break;
+
+    case 1.33:
+      $wrapper_attributes['class'][] = 'dcf-ratio-4x3';
+      break;
+
+    case 0.75:
+      $wrapper_attributes['class'][] = 'dcf-ratio-3x4';
+      break;
+
+    case 1.00:
+      $wrapper_attributes['class'][] = 'dcf-ratio-1x1';
+      break;
+
+    // If the ratio isn't standard, then calculate and handle with an inline
+    // <style> element.
+    default:
+      $percentage = round($ratio * 100, 2);
+      $random = new Random();
+      $class = $random->word(8);
+      $style_string = '<style>.' . $class . '::before { padding-top: ' . $percentage . '%!important; }</style>';
+      $wrapper_attributes['class'][] = $class;
+  }
+
+  // Remove data-height and data-width attributes prior to printing.
+  unset($element['#attributes']['data-height']);
+  unset($element['#attributes']['data-width']);
+
+  return $style_string . '<div' . $wrapper_attributes . '>' . $markup . '<noscript><img' . $no_script_attributes . '></noscript></div>';
+}

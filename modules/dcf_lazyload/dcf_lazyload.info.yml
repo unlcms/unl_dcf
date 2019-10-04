@@ -1,0 +1,9 @@
+name: 'DCF Lazy Loading'
+description: 'Implements DCF Lazy Loading functionality'
+package: DCF
+
+type: module
+core: 8.x
+
+dependencies:
+  - drupal:responsive_image

@@ -11,5 +11,8 @@ The *DCF Layouts* module provides CSS-grid-based layouts for core's *Layout Disc
 # DCF CKEditor
 The *DCF CKEditor* module provides CKEditor plugins to integrate with the DCF. Currently, it provides a *DCF Table* plugin, which automatically applies the `dcf-table` class to tables created in CKEditor. See README.md in the *DCF CKEditor* module for more information.
 
+# DCF Lazy Loading
+The *DCF Lazy Loading* module allows for a site builder to use *DCF Lazy Loading* with Drupal. It supports the base lazying loading functionality where images are loaded prior to entering the viewport. It also provides the ability to automatically calculate the *sizes* attribute based on the parent element.
+
 # DCF Base
 Coming soon! - a Drupal 8 base theme for DCF.

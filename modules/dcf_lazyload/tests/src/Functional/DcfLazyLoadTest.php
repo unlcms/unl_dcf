@@ -1,0 +1,259 @@
+<?php
+
+namespace Drupal\Tests\dcf_lazyload\Functional;
+
+use Drupal\responsive_image\Entity\ResponsiveImageStyle;
+use Drupal\Tests\image\Functional\ImageFieldTestBase;
+use Drupal\Tests\image\Kernel\ImageFieldCreationTrait;
+use Drupal\Tests\TestFileCreationTrait;
+
+/**
+ * Tests functionality of DCF Lazy Loading module.
+ *
+ * @group dcf_lazyload
+ */
+class DcfLazyLoadTest extends ImageFieldTestBase {
+
+  use TestFileCreationTrait;
+  use ImageFieldCreationTrait;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static $modules = [
+    'field_ui',
+    'node',
+    'responsive_image',
+    'dcf_lazyload',
+  ];
+
+  /**
+   * Tests formatter settings and markup rendering.
+   */
+  public function testResponsiveFieldFormatter() {
+    // Create test responsive image style.
+    $this->responsiveImgStyle = ResponsiveImageStyle::create([
+      'id' => 'test_responsive_image_style',
+      'label' => 'Test Responsive Image Style',
+      'breakpoint_group' => 'responsive_image',
+      'fallback_image_style' => 'medium',
+    ]);
+    $this->responsiveImgStyle->addImageStyleMapping('responsive_image.viewport_sizing', '1x', [
+      'image_mapping_type' => 'sizes',
+      'image_mapping' => [
+        'sizes' => '(min-width: 700px) 700px, 100vw',
+        'sizes_image_styles' => [
+          'medium' => 'medium',
+          'large' => 'large',
+        ],
+      ],
+    ])->save();
+
+    $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
+    $field_name = mb_strtolower($this->randomMachineName());
+    $this->createImageField($field_name, 'article', ['uri_scheme' => 'public']);
+
+    // Create image object from fixture image file.
+    // Use 1x1 ratio test image.
+    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    $test_image = new \stdClass();
+    $test_image->uri = $module_path . '/tests/fixtures/test_image_1x1.jpg';
+
+    // Create alt text for the image.
+    $alt = $this->randomMachineName();
+
+    $nid = $this->uploadNodeImage($test_image, $field_name, 'article', $alt);
+    $node_storage->resetCache([$nid]);
+
+    // Update display formatter to use responsive image style.
+    $display_options = [
+      'type' => 'responsive_image',
+      'settings' => [
+        'image_link' => '',
+        'responsive_image_style' => 'test_responsive_image_style',
+      ],
+    ];
+    /** @var \Drupal\Core\Entity\EntityDisplayRepositoryInterface $display_repository */
+    $display_repository = \Drupal::service('entity_display.repository');
+    $display = $display_repository->getViewDisplay('node', 'article');
+    $display->setComponent($field_name, $display_options)
+      ->save();
+
+    $this->drupalGet('node/' . $nid);
+
+    // Verify lazy loading is not enabled.
+    $this->assertEmpty($this
+      ->cssSelect('.dcf-lazy-load'));
+    $this->assertNoRaw('loading="lazy"');
+    $this->assertNoRaw('data-src');
+    $this->assertNoRaw('data-srcset');
+    $this->assertNoRaw('<noscript>');
+    $this->assertNoRaw('dcf-ratio');
+    $this->assertNoRaw('dcf-ratio-1x1');
+
+    // Verify JS and CSS are not loaded.
+    $this->assertNoRaw('dcf_lazyload/js/bundle.js');
+    $this->assertNoRaw('dcf_lazyload/css/dcf-lazyload.css');
+
+    // Update display options to enable DCF Lazy Loading.
+    $display_options['third_party_settings'] = [
+      'dcf_lazyload' => [
+        'dcf_lazyload_enable' => TRUE,
+      ],
+    ];
+    $display->setComponent($field_name, $display_options)->save();
+
+    $this->drupalGet('node/' . $nid);
+
+    // Verify lazy loading is enabled.
+    $this->assertNotEmpty($this
+      ->cssSelect('.dcf-lazy-load'));
+    $this->assertRaw('loading="lazy"');
+    $this->assertRaw('data-src');
+    $this->assertRaw('data-srcset');
+    $this->assertRaw('<noscript>');
+    $this->assertRaw('dcf-ratio');
+    // Verify ratio class is added to wrapper.
+    $this->assertRaw('dcf-ratio-1x1');
+
+    // Verify JS and CSS are loaded.
+    $this->assertRaw('dcf_lazyload/js/bundle.js');
+    $this->assertRaw('dcf_lazyload/css/dcf-lazyload.css');
+
+    // Verify dcf_lazyload_sizes is disabled.
+    $this->assertNoRaw('sizes="auto"');
+
+    // Update display options to enable sizes auto-calculation.
+    $display_options['third_party_settings'] = [
+      'dcf_lazyload' => [
+        'dcf_lazyload_enable' => TRUE,
+        'dcf_lazyload_sizes' => TRUE,
+      ],
+    ];
+    $display->setComponent($field_name, $display_options)->save();
+
+    $this->drupalGet('node/' . $nid);
+
+    // Verify dcf_lazyload_sizes is enabled.
+    $this->assertRaw('sizes="auto"');
+
+    // Upload an image with a 4x3 ratio.
+    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    $test_image = new \stdClass();
+    $test_image->uri = $module_path . '/tests/fixtures/test_image_4x3.jpg';
+
+    // Create alt text for the image.
+    $alt = $this->randomMachineName();
+
+    $nid = $this->uploadNodeImage($test_image, $field_name, 'article', $alt);
+    $node_storage->resetCache([$nid]);
+
+    $this->drupalGet('node/' . $nid);
+
+    $this->assertRaw('dcf-ratio-4x3');
+
+    // Upload an image with a 3x4 ratio.
+    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    $test_image = new \stdClass();
+    $test_image->uri = $module_path . '/tests/fixtures/test_image_3x4.jpg';
+
+    // Create alt text for the image.
+    $alt = $this->randomMachineName();
+
+    $nid = $this->uploadNodeImage($test_image, $field_name, 'article', $alt);
+    $node_storage->resetCache([$nid]);
+
+    $this->drupalGet('node/' . $nid);
+
+    $this->assertRaw('dcf-ratio-3x4');
+
+    // Upload an image with a 16x9 ratio.
+    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    $test_image = new \stdClass();
+    $test_image->uri = $module_path . '/tests/fixtures/test_image_16x9.jpg';
+
+    // Create alt text for the image.
+    $alt = $this->randomMachineName();
+
+    $nid = $this->uploadNodeImage($test_image, $field_name, 'article', $alt);
+    $node_storage->resetCache([$nid]);
+
+    $this->drupalGet('node/' . $nid);
+
+    $this->assertRaw('dcf-ratio-16x9');
+
+    // Upload an image with a 9x16 ratio.
+    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    $test_image = new \stdClass();
+    $test_image->uri = $module_path . '/tests/fixtures/test_image_9x16.jpg';
+
+    // Create alt text for the image.
+    $alt = $this->randomMachineName();
+
+    $nid = $this->uploadNodeImage($test_image, $field_name, 'article', $alt);
+    $node_storage->resetCache([$nid]);
+
+    $this->drupalGet('node/' . $nid);
+
+    $this->assertRaw('dcf-ratio-9x16');
+
+    // Upload an image with a non-standard ratio to a new article node.
+    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    $test_image = new \stdClass();
+    $test_image->uri = $module_path . '/tests/fixtures/test_image_non_standard_ratio.jpg';
+
+    // Create alt text for the image.
+    $alt = $this->randomMachineName();
+
+    $nid = $this->uploadNodeImage($test_image, $field_name, 'article', $alt);
+    $node_storage->resetCache([$nid]);
+
+    $this->drupalGet('node/' . $nid);
+
+    // Verify inline CSS is added for non-standard ratio image.
+    $this->assertRaw('{ padding-top: 107%!important; }');
+
+    // Update config to load assets externally.
+    $config = \Drupal::service('config.factory')->getEditable('dcf_lazyload.settings');
+    $config->set('assets_source', 'external')->save();
+
+    drupal_flush_all_caches();
+
+    $node_storage->resetCache([$nid]);
+    $this->drupalGet('node/' . $nid);
+
+    // Verify JS and CSS are not loaded from DCF Lazy Loading module.
+    $this->assertNoRaw('dcf_lazyload/js/bundle.js');
+    $this->assertNoRaw('dcf_lazyload/css/dcf-lazyload.css');
+  }
+
+  /**
+   * Tests settings form.
+   */
+  public function testSettingsForm() {
+    // Create admin user.
+    $this->adminUser = $this->drupalCreateUser([
+      'access administration pages',
+      'administer dcf lazyload',
+    ]);
+    $this->drupalLogin($this->adminUser);
+
+    $assert_session = $this->assertSession();
+    $page = $this->getSession()->getPage();
+
+    $config = \Drupal::config('dcf_lazyload.settings');
+    $stored_value = $config->get('assets_source');
+    $this->assertIdentical('module', $stored_value);
+
+    $this->drupalGet('admin/config/media/dcf/lazyload');
+
+    $page->fillField('assets_source', 'external');
+    $page->pressButton('Save configuration');
+    $assert_session->pageTextContains('The configuration options have been saved.');
+
+    $config = \Drupal::config('dcf_lazyload.settings');
+    $stored_value = $config->get('assets_source');
+    $this->assertIdentical('external', $stored_value);
+  }
+
+}
