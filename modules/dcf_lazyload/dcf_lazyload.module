@@ -6,111 +6,34 @@
  */
 
 use Drupal\Component\Utility\Random;
-use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Template\Attribute;
 use Drupal\Core\Template\AttributeString;
 
+module_load_include('inc', 'dcf_lazyload', 'dcf_lazyload.field_formatter');
+module_load_include('inc', 'dcf_lazyload', 'dcf_lazyload.views_field');
+
 /**
- * Implements hook_field_formatter_third_party_settings_form().
+ * Implements template_preprocess_responsive_image_formatter().
  */
-function dcf_lazyload_field_formatter_third_party_settings_form($plugin, $field_definition, $view_mode, $form, $form_state) {
-  if ($plugin->getPluginId() == 'responsive_image') {
-    $element = [];
-    $element['dcf_lazyload_enable'] = [
-      '#type' => 'checkbox',
-      '#title' => t('Enable DCF Lazy Loading'),
-      '#default_value' => $plugin->getThirdPartySetting('dcf_lazyload', 'dcf_lazyload_enable'),
-      '#value_callback' => '_dcf_lazyload_checkbox_boolean',
-    ];
-    $element['dcf_lazyload_sizes'] = [
-      '#type' => 'checkbox',
-      '#title' => t('Automatically calculate "sizes" attribute'),
-      '#default_value' => $plugin->getThirdPartySetting('dcf_lazyload', 'dcf_lazyload_sizes'),
-      '#value_callback' => '_dcf_lazyload_checkbox_boolean',
-      '#states' => [
-        'visible' => [
-          ':input[name="fields[field_image][settings_edit_form][third_party_settings][dcf_lazyload][dcf_lazyload_enable]"]' => ['checked' => TRUE],
-        ],
-      ],
-    ];
-    return $element;
+function dcf_lazyload_preprocess_responsive_image_formatter(&$variables) {
+  // Check for data passed from dcf_lazyload_preprocess_views_view_field()
+  // or dcf_lazyload_preprocess_field().
+  $dcf_lazyload_enabled = $variables['item']->__get('dcf_lazyload_enable');
+  if ($dcf_lazyload_enabled) {
+    $variables['responsive_image']['#attributes']['class'][] = 'dcf-lazy-load';
+    $variables['responsive_image']['#attributes']['class'][] = 'dcf-ratio-child';
+    $variables['responsive_image']['#attributes']['loading'] = 'lazy';
+    $variables['item']->__unset('dcf_lazyload_enable');
   }
-}
 
-/**
- * Callback function to convert checkbox values to boolean before submitting.
- *
- * @param array $element
- *   An array representing the element being rendered.
- * @param int $input
- *   An integer representing a boolean value.
- * @param \Drupal\Core\Form\FormState $form_state
- *   The current state of the form.
- *
- * @return bool
- *   The input integer cast to a boolean value.
- */
-function _dcf_lazyload_checkbox_boolean(array $element, $input, FormState $form_state) {
-  // If $input is false, then return default value per API docs.
-  if ($input === FALSE) {
-    return $element['#default_value'];
-  }
-  return (bool) $input;
-}
-
-/**
- * Implements hook_field_formatter_settings_summary_alter().
- */
-function dcf_lazyload_field_formatter_settings_summary_alter(&$summary, $context) {
-  if ($context['formatter']->getPluginId() == 'responsive_image') {
-    if ($context['formatter']->getThirdPartySetting('dcf_lazyload', 'dcf_lazyload_enable')) {
-      $summary[] = t('DCF lazy loading is enabled.');
-    }
-    if ($context['formatter']->getThirdPartySetting('dcf_lazyload', 'dcf_lazyload_sizes')) {
-      $summary[] = t('"Sizes" attribute is auto-calculated');
-    }
-  }
-}
-
-/**
- * Implements hook_preprocess_field().
- */
-function dcf_lazyload_preprocess_field(&$variables) {
-  if ($variables['element']['#formatter'] == 'responsive_image') {
-    $entity = $variables['element']['#object'];
-    $view_mode = $variables['element']['#view_mode'];
-    $field_name = $variables['element']['#field_name'];
-
-    // Get field formatter settings.
-    $entity_display = EntityViewDisplay::collectRenderDisplay($entity, $view_mode);
-    $field_display = $entity_display->getComponent($field_name);
-
-    // Add attributes given field formatter settings.
-    if (isset($field_display['third_party_settings']['dcf_lazyload']['dcf_lazyload_enable'])
-      && $field_display['third_party_settings']['dcf_lazyload']['dcf_lazyload_enable'] == TRUE
-      ) {
-      foreach ($variables['items'] as $key => $item) {
-        $variables['items'][$key]['content']['#item_attributes']['class'][] = 'dcf-lazy-load';
-        $variables['items'][$key]['content']['#item_attributes']['class'][] = 'dcf-ratio-child';
-        $variables['items'][$key]['content']['#item_attributes']['loading'] = 'lazy';
-
-        if (isset($field_display['third_party_settings']['dcf_lazyload']['dcf_lazyload_sizes'])
-          && $field_display['third_party_settings']['dcf_lazyload']['dcf_lazyload_sizes'] == TRUE
-          ) {
-          // The 'sizes' attribute is added to the render array when the
-          // responsive image style is applied, so pass through the desired
-          // value in a 'data-sizes' attribute to rewrite later.
-          $variables['items'][$key]['content']['#item_attributes']['data-sizes'] = 'auto';
-        }
-      }
-
-      // Load lazyload library is so configured.
-      $config = \Drupal::config('dcf_lazyload.settings');
-      if ($config->get('assets_source') == 'module') {
-        $variables['#attached']['library'][] = 'dcf_lazyload/lazyload';
-      }
-    }
+  $dcf_lazyload_sizes = $variables['item']->__get('dcf_lazyload_sizes');
+  if ($dcf_lazyload_sizes) {
+    // The 'sizes' attribute is added to the render array when the
+    // responsive image style is applied, so pass through the desired
+    // value in a 'data-sizes' attribute to rewrite later.
+    $variables['responsive_image']['#attributes']['data-sizes'] = 'auto';
+    $variables['item']->__unset('dcf_lazyload_sizes');
   }
 }
 
@@ -141,6 +64,12 @@ function dcf_lazyload_preprocess_responsive_image(&$variables) {
     // #suffix is run through Xss::filterAdmin(), so a post-render function
     // must be used instead to add <noscript>.
     $variables['img_element']['#post_render'][] = 'dcf_lazyload_postrender';
+
+    // Load lazyload library if so configured.
+    $config = \Drupal::config('dcf_lazyload.settings');
+    if ($config->get('assets_source') == 'module') {
+      $variables['img_element']['#attached']['library'][] = 'dcf_lazyload/lazyload';
+    }
   }
 }
 
@@ -223,4 +152,25 @@ function dcf_lazyload_postrender($markup, array $element) {
   unset($element['#attributes']['data-width']);
 
   return $style_string . '<div' . $wrapper_attributes . '>' . $markup . '<noscript><img' . $no_script_attributes . '></noscript></div>';
+}
+
+/**
+ * Callback function to convert checkbox values to boolean before submitting.
+ *
+ * @param array $element
+ *   An array representing the element being rendered.
+ * @param int $input
+ *   An integer representing a boolean value.
+ * @param \Drupal\Core\Form\FormState $form_state
+ *   The current state of the form.
+ *
+ * @return bool
+ *   The input integer cast to a boolean value.
+ */
+function _dcf_lazyload_checkbox_boolean(array $element, $input, FormState $form_state) {
+  // If $input is false, then return default value per API docs.
+  if ($input === FALSE) {
+    return $element['#default_value'];
+  }
+  return (bool) $input;
 }

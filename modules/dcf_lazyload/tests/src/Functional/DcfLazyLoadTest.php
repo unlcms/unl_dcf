@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\dcf_lazyload\Functional;
 
+use Drupal\Core\Config\FileStorage;
 use Drupal\responsive_image\Entity\ResponsiveImageStyle;
 use Drupal\Tests\image\Functional\ImageFieldTestBase;
 use Drupal\Tests\image\Kernel\ImageFieldCreationTrait;
@@ -25,12 +26,23 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     'node',
     'responsive_image',
     'dcf_lazyload',
+    'dcf_lazyload_test',
+    'views',
   ];
 
   /**
-   * Tests formatter settings and markup rendering.
+   * Machine name of image field.
+   *
+   * @var string
    */
-  public function testResponsiveFieldFormatter() {
+  protected $imageFieldName;
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp() {
+    parent::setUp();
+
     // Create test responsive image style.
     $this->responsiveImgStyle = ResponsiveImageStyle::create([
       'id' => 'test_responsive_image_style',
@@ -49,9 +61,15 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
       ],
     ])->save();
 
+    $this->imageFieldName = 'field_image';
+    $this->createImageField($this->imageFieldName, 'article', ['uri_scheme' => 'public']);
+  }
+
+  /**
+   * Tests formatter settings and markup rendering.
+   */
+  public function testResponsiveFieldFormatter() {
     $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
-    $field_name = mb_strtolower($this->randomMachineName());
-    $this->createImageField($field_name, 'article', ['uri_scheme' => 'public']);
 
     // Create image object from fixture image file.
     // Use 1x1 ratio test image.
@@ -62,7 +80,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     // Create alt text for the image.
     $alt = $this->randomMachineName();
 
-    $nid = $this->uploadNodeImage($test_image, $field_name, 'article', $alt);
+    $nid = $this->uploadNodeImage($test_image, $this->imageFieldName, 'article', $alt);
     $node_storage->resetCache([$nid]);
 
     // Update display formatter to use responsive image style.
@@ -76,7 +94,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     /** @var \Drupal\Core\Entity\EntityDisplayRepositoryInterface $display_repository */
     $display_repository = \Drupal::service('entity_display.repository');
     $display = $display_repository->getViewDisplay('node', 'article');
-    $display->setComponent($field_name, $display_options)
+    $display->setComponent($this->imageFieldName, $display_options)
       ->save();
 
     $this->drupalGet('node/' . $nid);
@@ -101,7 +119,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
         'dcf_lazyload_enable' => TRUE,
       ],
     ];
-    $display->setComponent($field_name, $display_options)->save();
+    $display->setComponent($this->imageFieldName, $display_options)->save();
 
     $this->drupalGet('node/' . $nid);
 
@@ -130,7 +148,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
         'dcf_lazyload_sizes' => TRUE,
       ],
     ];
-    $display->setComponent($field_name, $display_options)->save();
+    $display->setComponent($this->imageFieldName, $display_options)->save();
 
     $this->drupalGet('node/' . $nid);
 
@@ -145,7 +163,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     // Create alt text for the image.
     $alt = $this->randomMachineName();
 
-    $nid = $this->uploadNodeImage($test_image, $field_name, 'article', $alt);
+    $nid = $this->uploadNodeImage($test_image, $this->imageFieldName, 'article', $alt);
     $node_storage->resetCache([$nid]);
 
     $this->drupalGet('node/' . $nid);
@@ -160,7 +178,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     // Create alt text for the image.
     $alt = $this->randomMachineName();
 
-    $nid = $this->uploadNodeImage($test_image, $field_name, 'article', $alt);
+    $nid = $this->uploadNodeImage($test_image, $this->imageFieldName, 'article', $alt);
     $node_storage->resetCache([$nid]);
 
     $this->drupalGet('node/' . $nid);
@@ -175,7 +193,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     // Create alt text for the image.
     $alt = $this->randomMachineName();
 
-    $nid = $this->uploadNodeImage($test_image, $field_name, 'article', $alt);
+    $nid = $this->uploadNodeImage($test_image, $this->imageFieldName, 'article', $alt);
     $node_storage->resetCache([$nid]);
 
     $this->drupalGet('node/' . $nid);
@@ -190,7 +208,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     // Create alt text for the image.
     $alt = $this->randomMachineName();
 
-    $nid = $this->uploadNodeImage($test_image, $field_name, 'article', $alt);
+    $nid = $this->uploadNodeImage($test_image, $this->imageFieldName, 'article', $alt);
     $node_storage->resetCache([$nid]);
 
     $this->drupalGet('node/' . $nid);
@@ -205,7 +223,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     // Create alt text for the image.
     $alt = $this->randomMachineName();
 
-    $nid = $this->uploadNodeImage($test_image, $field_name, 'article', $alt);
+    $nid = $this->uploadNodeImage($test_image, $this->imageFieldName, 'article', $alt);
     $node_storage->resetCache([$nid]);
 
     $this->drupalGet('node/' . $nid);
@@ -225,6 +243,74 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     // Verify JS and CSS are not loaded from DCF Lazy Loading module.
     $this->assertNoRaw('dcf_lazyload/js/bundle.js');
     $this->assertNoRaw('dcf_lazyload/css/dcf-lazyload.css');
+  }
+
+  /**
+   * Tests views field formatter settings and markup rendering.
+   */
+  public function testResponsiveViewField() {
+    $config_path = drupal_get_path('module', 'dcf_lazyload_test') . '/config/optional';
+    $config_source = new FileStorage($config_path);
+    \Drupal::service('config.installer')->installOptionalConfig($config_source);
+    drupal_flush_all_caches();
+
+    $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
+
+    // Create image object from fixture image file.
+    // Use 1x1 ratio test image.
+    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    $test_image = new \stdClass();
+    $test_image->uri = $module_path . '/tests/fixtures/test_image_1x1.jpg';
+
+    // Create alt text for the image.
+    $alt = $this->randomMachineName();
+
+    $nid = $this->uploadNodeImage($test_image, $this->imageFieldName, 'article', $alt);
+    $node_storage->resetCache([$nid]);
+
+    // Load view with DCF lazyloading disabled.
+    $this->drupalGet('dcf-lazyload-test-view');
+
+    // Verify lazy loading is not enabled.
+    $this->assertEmpty($this
+      ->cssSelect('.dcf-lazy-load'));
+    $this->assertNoRaw('loading="lazy"');
+    $this->assertNoRaw('data-src');
+    $this->assertNoRaw('data-srcset');
+    $this->assertNoRaw('<noscript>');
+    $this->assertNoRaw('dcf-ratio');
+    $this->assertNoRaw('dcf-ratio-1x1');
+
+    // Verify JS and CSS are not loaded.
+    $this->assertNoRaw('dcf_lazyload/js/bundle.js');
+    $this->assertNoRaw('dcf_lazyload/css/dcf-lazyload.css');
+
+    // Load view with DCF lazyloading enabled.
+    $this->drupalGet('dcf-lazyload-test-view-enabled');
+
+    // Verify lazy loading is enabled.
+    $this->assertNotEmpty($this
+      ->cssSelect('.dcf-lazy-load'));
+    $this->assertRaw('loading="lazy"');
+    $this->assertRaw('data-src');
+    $this->assertRaw('data-srcset');
+    $this->assertRaw('<noscript>');
+    $this->assertRaw('dcf-ratio');
+    // Verify ratio class is added to wrapper.
+    $this->assertRaw('dcf-ratio-1x1');
+
+    // Verify JS and CSS are loaded.
+    $this->assertRaw('dcf_lazyload/js/bundle.js');
+    $this->assertRaw('dcf_lazyload/css/dcf-lazyload.css');
+
+    // Verify dcf_lazyload_sizes is disabled.
+    $this->assertNoRaw('sizes="auto"');
+
+    // Load view with DCF lazyloading enabled with sizes autocalculated.
+    $this->drupalGet('dcf-lazyload-test-view-enabled-sizes');
+
+    // Verify dcf_lazyload_sizes is enabled.
+    $this->assertRaw('sizes="auto"');
   }
 
   /**
