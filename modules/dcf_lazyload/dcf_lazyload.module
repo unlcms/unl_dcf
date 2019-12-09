@@ -211,7 +211,7 @@ function dcf_lazyload_postrender($markup, array $element) {
     // If the ratio isn't standard, then calculate and handle with an inline
     // <style> element.
     default:
-      $percentage = round($ratio * 100, 2);
+      $percentage = round($height / $width * 100, 2);
       $random = new Random();
       $class = $random->word(8);
       $style_string = '<style>.' . $class . '::before { padding-top: ' . $percentage . '%!important; }</style>';

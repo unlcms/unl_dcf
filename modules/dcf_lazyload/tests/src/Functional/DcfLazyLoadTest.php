@@ -211,7 +211,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     $this->drupalGet('node/' . $nid);
 
     // Verify inline CSS is added for non-standard ratio image.
-    $this->assertRaw('{ padding-top: 107%!important; }');
+    $this->assertRaw('{ padding-top: 93.07%!important; }');
 
     // Update config to load assets externally.
     $config = \Drupal::service('config.factory')->getEditable('dcf_lazyload.settings');
