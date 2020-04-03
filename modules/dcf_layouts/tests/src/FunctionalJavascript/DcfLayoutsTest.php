@@ -42,7 +42,7 @@ class DcfLayoutsTest extends WebDriverTestBase {
   }
 
   /**
-   * Tests layouts configuation implementation.
+   * Tests layouts configuration implementation.
    */
   public function testLayouts() {
     $this->getSession()->resizeWindow(1200, 2000);
@@ -76,13 +76,16 @@ class DcfLayoutsTest extends WebDriverTestBase {
 
     $assert_session->assertWaitOnAjaxRequest();
     $this->clickLink('Two column (DCF)');
+    $assert_session->assertWaitOnAjaxRequest();
+
+    $page->fillField('layout_settings[title]', 'Section Test Title');
 
     $assert_session->assertWaitOnAjaxRequest();
     // Verify Title Classes field is not visible.
     $element = $page->find('xpath', '//*[contains(@class, "form-item-layout-settings-title-classes")]');
     $this->assertFalse($element->isVisible());
 
-    $page->fillField('Title', 'Section Test Title');
+    $page->checkField('layout_settings[title_display]');
 
     // Verify Title Classes field is visible.
     $element = $page->find('xpath', '//*[contains(@class, "form-item-layout-settings-title-classes")]');
@@ -140,7 +143,7 @@ class DcfLayoutsTest extends WebDriverTestBase {
     $this->drupalGet('node/1/layout');
 
     // Update section to use section style package.
-    $this->clickLink('Configure Section 1');
+    $this->clickLink('Configure Section Test Title');
 
     $assert_session->assertWaitOnAjaxRequest();
     // Verify Section Classes field is visible.
@@ -177,6 +180,21 @@ class DcfLayoutsTest extends WebDriverTestBase {
     // Verify block margin is no longer being added.
     $element = $page->find('xpath', '//*[contains(@class, "block-field-blocknodebundle-with-section-fieldtype")]');
     $this->assertFalse($element->hasClass('dcf-mt-1'));
+
+    $this->drupalGet('node/1/layout');
+
+    // Update section to hide section title from rendering.
+    $this->clickLink('Configure Section Test Title');
+    $assert_session->assertWaitOnAjaxRequest();
+    $page->uncheckField('layout_settings[title_display]');
+
+    $page->pressButton('Update');
+
+    $this->waitForNoElement('#drupal-off-canvas');
+    $assert_session->assertWaitOnAjaxRequest();
+    $page->pressButton('Save layout');
+
+    $assert_session->pageTextNotContains('Section Test Title');
   }
 
   /**

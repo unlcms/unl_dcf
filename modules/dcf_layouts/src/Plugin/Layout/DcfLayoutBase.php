@@ -21,6 +21,7 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
       'column_widths' => array_shift($width_classes),
       'title' => '',
       'title_classes' => '',
+      'title_display' => FALSE,
       'section_package' => '',
       'section_classes' => '',
     ];
@@ -42,12 +43,21 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
       '#description' => $this->t('Choose the column widths for this layout.'),
     ];
 
-    // Allow editors to select a title for the section.
+    // Require editors to set a title for the section.
+    // This is also stored as the 'Administrative label' in D8.8+.
     $form['title'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Title'),
       '#default_value' => $configuration['title'],
       '#description' => $this->t('Optional heading for this section.'),
+      '#required' => TRUE,
+    ];
+
+    // Allow editors to display section title on render.
+    $form['title_display'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Display title'),
+      '#default_value' => $configuration['title_display'],
     ];
 
     $heading_classes = $config_dcf_classes->get('heading');
@@ -66,7 +76,7 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
       '#multiple' => TRUE,
       '#states' => [
         'visible' => [
-          ':input[name="layout_settings[title]"]' => ['filled' => TRUE],
+          ':input[name="layout_settings[title_display]"]' => ['checked' => TRUE],
         ],
       ],
     ];
@@ -152,8 +162,10 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+    $this->configuration['label'] = $form_state->getValue('title');
     $this->configuration['column_widths'] = $form_state->getValue('column_widths');
     $this->configuration['title'] = $form_state->getValue('title');
+    $this->configuration['title_display'] = (boolean) $form_state->getValue('title_display');
     $this->configuration['title_classes'] = $form_state->getValue('title_classes');
     $this->configuration['section_package'] = $form_state->getValue('section_package');
     $this->configuration['section_classes'] = empty($this->configuration['section_package']) ? $form_state->getValue('section_classes') : [];
@@ -170,6 +182,11 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
     // Initialize attributes.
     $build['#settings']['section_attributes'] = new Attribute();
     $build['#settings']['title_attributes'] = new Attribute();
+
+    // Don't display title unless 'title_display' is checked.
+    if (isset($configuration['title_display']) && $configuration['title_display'] == FALSE) {
+      unset($build['#settings']['title']);
+    }
 
     // Add classes to section title.
     if (!empty($configuration['title_classes'])) {
