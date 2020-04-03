@@ -23,17 +23,17 @@ class DcfCkeditorTest extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
+  protected $defaultTheme = 'stark';
+
+  /**
+   * {@inheritdoc}
+   */
   public static $modules = [
     'node',
     'ckeditor',
     'filter',
     'dcf_ckeditor',
   ];
-
-  /**
-   * {@inheritdoc}
-   */
-  protected $defaultTheme = 'stark';
 
   /**
    * The configured text editor entity.

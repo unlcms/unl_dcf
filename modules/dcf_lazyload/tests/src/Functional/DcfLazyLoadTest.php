@@ -21,6 +21,11 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
   /**
    * {@inheritdoc}
    */
+  protected $defaultTheme = 'stark';
+
+  /**
+   * {@inheritdoc}
+   */
   public static $modules = [
     'field_ui',
     'node',

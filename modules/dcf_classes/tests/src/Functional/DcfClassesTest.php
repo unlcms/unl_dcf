@@ -7,10 +7,15 @@ use Drupal\Tests\BrowserTestBase;
 
 /**
  * Tests functionality of dcf_classes module.
- * 
+ *
  * @group dcf_classes
  */
 class DcfClassesTest extends BrowserTestBase {
+
+  /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
 
   /**
    * {@inheritdoc}

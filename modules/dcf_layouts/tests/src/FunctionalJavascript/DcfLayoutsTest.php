@@ -14,9 +14,15 @@ class DcfLayoutsTest extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
+  protected $defaultTheme = 'stark';
+
+  /**
+   * {@inheritdoc}
+   */
   public static $modules = [
     'dcf_classes',
     'dcf_layouts',
+    'dcf_layouts_test',
     'layout_builder',
     'node',
     'field_ui',
