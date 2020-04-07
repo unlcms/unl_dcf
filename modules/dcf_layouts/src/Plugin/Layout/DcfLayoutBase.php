@@ -2,6 +2,7 @@
 
 namespace Drupal\dcf_layouts\Plugin\Layout;
 
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Layout\LayoutDefault;
 use Drupal\Core\Plugin\PluginFormInterface;
@@ -24,6 +25,7 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
       'title_display' => FALSE,
       'section_package' => '',
       'section_classes' => '',
+      'section_element_id' => '',
     ];
   }
 
@@ -145,6 +147,18 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
       '#empty_value' => '',
     ];
 
+    $form['advanced'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Advanced'),
+    ];
+
+    $form['advanced']['section_element_id'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Section element ID'),
+      '#description' => $this->t("The ID attribute on the layout's &lt;div&gt; element"),
+      '#default_value' => $configuration['section_element_id'],
+    ];
+
     // Needed until https://www.drupal.org/project/drupal/issues/3080698
     // is fixed.
     $form['#attached']['library'][] = 'dcf_layouts/drupal.dialog.off_canvas';
@@ -156,6 +170,11 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
    * {@inheritdoc}
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
+    $values = $form_state->getValues();
+
+    if ($values['advanced']['section_element_id'] != Html::cleanCssIdentifier($values['advanced']['section_element_id'])) {
+      $form_state->setError($form['advanced']['section_element_id'], $this->t('Element ID must be a valid CSS ID'));
+    }
   }
 
   /**
@@ -170,6 +189,7 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
     $this->configuration['section_package'] = $form_state->getValue('section_package');
     $this->configuration['section_classes'] = empty($this->configuration['section_package']) ? $form_state->getValue('section_classes') : [];
     $this->configuration['block_margin'] = $form_state->getValue('block_margin');
+    $this->configuration['section_element_id'] = $form_state->getValue('advanced')['section_element_id'];
   }
 
   /**
@@ -205,6 +225,9 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
 
     if (!empty($section_classes)) {
       $build['#settings']['section_attributes']->addClass($section_classes);
+    }
+    if (!empty($configuration['section_element_id'])) {
+      $build['#settings']['section_attributes']->setAttribute('id', $configuration['section_element_id']);
     }
 
     // Add designated margin-top to each block, except the first block in

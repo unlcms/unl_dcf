@@ -100,6 +100,17 @@ class DcfLayoutsTest extends WebDriverTestBase {
     $page->fillField('Title classes', 'heading-class-1');
     $page->fillField('Classes', 'section-class-1');
     $page->fillField('Block margin', 'dcf-mt-1');
+    $page->pressButton('Advanced');
+    $page->fillField('Section element ID', 'section-id-invalid&*(');
+    $page->pressButton('Add section');
+
+    $assert_session->assertWaitOnAjaxRequest();
+    // Due to https://www.drupal.org/project/drupal/issues/2897377, validation
+    // in the settings tray fails silently, so check that the form did not
+    // submit and close instead of checking for the error message.
+    $element = $page->find('xpath', '//*[@name="layout_settings[advanced][section_element_id]"]');
+    $this->assertNotNull($element);
+    $page->fillField('Section element ID', 'section-id-1');
     $page->pressButton('Add section');
 
     $this->waitForNoElement('#drupal-off-canvas');
@@ -145,6 +156,10 @@ class DcfLayoutsTest extends WebDriverTestBase {
 
     $element = $page->find('xpath', '//*[contains(@class, "block-field-blocknodebundle-with-section-fieldtype")]');
     $this->assertTrue($element->hasClass('dcf-mt-1'));
+
+    // Verify section id is printed.
+    $element = $page->find('xpath', '//*[@id="section-id-1"]');
+    $this->assertNotEmpty($element);
 
     $this->drupalGet('node/1/layout');
 
