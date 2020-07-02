@@ -151,6 +151,7 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
     $form['advanced'] = [
       '#type' => 'details',
       '#title' => $this->t('Advanced'),
+      '#weight' => 51,
     ];
 
     $form['advanced']['section_element_id'] = [
@@ -191,6 +192,11 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
     $this->configuration['section_classes'] = empty($this->configuration['section_package']) ? $form_state->getValue('section_classes') : [];
     $this->configuration['block_margin'] = $form_state->getValue('block_margin');
     $this->configuration['section_element_id'] = $form_state->getValue('advanced')['section_element_id'];
+
+    $column_count = $form_state->get('column_count');
+    for ($i = 1; $i <= $column_count; $i++) {
+      $this->configuration['column_classes']['col_' . $i] = $form_state->getValue('column_classes')[$i];
+    }
   }
 
   /**
@@ -259,6 +265,44 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
     $build['#attributes']['class'][] = $this->getPluginDefinition()->getTemplate();
 
     return $build;
+  }
+
+  /**
+   * Generate column classes form elements.
+   *
+   * @param int $column_count
+   *   The number of columns in the layout.
+   *
+   * @return array
+   *   A partial form array.
+   */
+  protected function columnClassFormElements(int $column_count) {
+    // Allow editors to select html classes using user-friendly term names.
+    $column_classes = \Drupal::config('dcf_classes.classes')->get('column');
+    $options = [];
+    foreach ($column_classes as $class) {
+      $options[$class] = $class;
+    }
+    $form['column_classes'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Column Classes'),
+      '#weight' => 50,
+    ];
+
+    for ($i = 1; $i <= $column_count; $i++) {
+      $form['column_classes'][$i] = [
+        '#type' => 'select',
+        '#title' => $this->t('Column @i classes', ['@i' => $i]),
+        '#default_value' => $this->configuration['column_classes']['col_' . $i],
+        '#options' => $options,
+        '#description' => $this->t('Select classes for the column.'),
+        '#empty_option' => $this->t('- None -'),
+        '#empty_value' => '',
+        '#multiple' => TRUE,
+      ];
+    }
+
+    return $form;
   }
 
   /**

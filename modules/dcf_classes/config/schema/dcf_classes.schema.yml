@@ -18,3 +18,8 @@ dcf_classes.classes:
       sequence:
         type: string
         label: 'Section classes'
+    column:
+      type: sequence
+      label: 'Column classes'
+      sequence:
+        type: string

@@ -60,6 +60,7 @@ class DcfLayoutsTest extends WebDriverTestBase {
     $page->fillField('Heading Classes', 'heading-class-1' . PHP_EOL . 'heading-class-2');
     $page->fillField('Section Classes', 'section-class-1' . PHP_EOL . 'section-class-2');
     $page->fillField('Section Packages', 'Section Package A|section-class-A section-class-B' . PHP_EOL . 'Section Package B|section-class-C section-class-D');
+    $page->fillField('Column Classes', 'column-class-1' . PHP_EOL . 'column-class-2' . PHP_EOL . 'column-class-3' . PHP_EOL . 'column-class-4');
     $page->pressButton('Save');
 
     // Set default layout to be managed with Layout Builder.
@@ -216,6 +217,166 @@ class DcfLayoutsTest extends WebDriverTestBase {
     $page->pressButton('Save layout');
 
     $assert_session->pageTextNotContains('Section Test Title');
+
+    // Test column classes.
+    // Start with existing 2-column layout.
+    $this->drupalGet('node/1/layout');
+
+    $this->clickLink('Configure Section Test Title');
+    $assert_session->assertWaitOnAjaxRequest();
+    $page->pressButton('Column Classes');
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][1][]"]');
+    $this->assertNotEmpty($element);
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][2][]"]');
+    $this->assertNotEmpty($element);
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][3][]"]');
+    $this->assertEmpty($element);
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][4][]"]');
+    $this->assertEmpty($element);
+
+    $page->fillField('Column 1 classes', 'column-class-1');
+    $page->fillField('Column 2 classes', 'column-class-2');
+
+    $page->pressButton('Update');
+
+    $this->waitForNoElement('#drupal-off-canvas');
+    $assert_session->assertWaitOnAjaxRequest();
+    $page->pressButton('Save layout');
+
+    $element = $page->find('xpath', '//*[contains(@class, "layout--dcf-twocol-section")]/div[contains(@class, "layout__region--first")]');
+    $this->assertTrue($element->hasClass('column-class-1'));
+    $element = $page->find('xpath', '//*[contains(@class, "layout--dcf-twocol-section")]/div[contains(@class, "layout__region--second")]');
+    $this->assertTrue($element->hasClass('column-class-2'));
+
+    // Test column classes.
+    // Test one-column layout.
+    $this->drupalGet('node/1/layout');
+
+    $this->clickLink('Add section');
+
+    $assert_session->assertWaitOnAjaxRequest();
+    $this->clickLink('One column (DCF)');
+    $assert_session->assertWaitOnAjaxRequest();
+
+    $page->fillField('layout_settings[title]', 'Section Test Title');
+
+    $page->pressButton('Column Classes');
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][1][]"]');
+    $this->assertNotEmpty($element);
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][2][]"]');
+    $this->assertEmpty($element);
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][3][]"]');
+    $this->assertEmpty($element);
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][4][]"]');
+    $this->assertEmpty($element);
+
+    $page->fillField('Column 1 classes', 'column-class-1');
+
+    $page->pressButton('Add section');
+
+    $this->waitForNoElement('#drupal-off-canvas');
+    $assert_session->assertWaitOnAjaxRequest();
+    $page->pressButton('Save layout');
+
+    $element = $page->find('xpath', '//*[contains(@class, "layout--dcf-onecol-section")]/div[contains(@class, "layout__region--first")]');
+    $this->assertTrue($element->hasClass('column-class-1'));
+
+    // Test column classes.
+    // Test three-column layout.
+    $this->drupalGet('node/1/layout');
+
+    $this->clickLink('Add section');
+
+    $assert_session->assertWaitOnAjaxRequest();
+    $this->clickLink('Three column (DCF)');
+    $assert_session->assertWaitOnAjaxRequest();
+
+    $page->fillField('layout_settings[title]', 'Section Test Title');
+
+    $page->pressButton('Column Classes');
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][1][]"]');
+    $this->assertNotEmpty($element);
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][2][]"]');
+    $this->assertNotEmpty($element);
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][3][]"]');
+    $this->assertNotEmpty($element);
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][4][]"]');
+    $this->assertEmpty($element);
+
+    $page->fillField('Column 1 classes', 'column-class-1');
+    $page->fillField('Column 2 classes', 'column-class-2');
+    $page->fillField('Column 3 classes', 'column-class-3');
+
+    $page->pressButton('Add section');
+
+    $this->waitForNoElement('#drupal-off-canvas');
+    $assert_session->assertWaitOnAjaxRequest();
+    $page->pressButton('Save layout');
+
+    $element = $page->find('xpath', '//*[contains(@class, "layout--dcf-threecol-section")]/div[contains(@class, "layout__region--first")]');
+    $this->assertTrue($element->hasClass('column-class-1'));
+    $element = $page->find('xpath', '//*[contains(@class, "layout--dcf-threecol-section")]/div[contains(@class, "layout__region--second")]');
+    $this->assertTrue($element->hasClass('column-class-2'));
+    $element = $page->find('xpath', '//*[contains(@class, "layout--dcf-threecol-section")]/div[contains(@class, "layout__region--third")]');
+    $this->assertTrue($element->hasClass('column-class-3'));
+
+    // Test column classes.
+    // Test four-column layout.
+    $this->drupalGet('node/1/layout');
+
+    $this->clickLink('Add section');
+
+    $assert_session->assertWaitOnAjaxRequest();
+    $this->clickLink('Four column (DCF)');
+    $assert_session->assertWaitOnAjaxRequest();
+
+    $page->fillField('layout_settings[title]', 'Section Test Title');
+
+    $page->pressButton('Column Classes');
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][1][]"]');
+    $this->assertNotEmpty($element);
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][2][]"]');
+    $this->assertNotEmpty($element);
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][3][]"]');
+    $this->assertNotEmpty($element);
+
+    $element = $page->find('xpath', '//*[@name="layout_settings[column_classes][4][]"]');
+    $this->assertNotEmpty($element);
+
+    $page->fillField('Column 1 classes', 'column-class-1');
+    $page->fillField('Column 2 classes', 'column-class-2');
+    $page->fillField('Column 3 classes', 'column-class-3');
+    $page->fillField('Column 4 classes', 'column-class-4');
+
+    $page->pressButton('Add section');
+
+    $this->waitForNoElement('#drupal-off-canvas');
+    $assert_session->assertWaitOnAjaxRequest();
+    $page->pressButton('Save layout');
+
+    $element = $page->find('xpath', '//*[contains(@class, "layout--dcf-fourcol-section")]/div[contains(@class, "layout__region--first")]');
+    $this->assertTrue($element->hasClass('column-class-1'));
+    $element = $page->find('xpath', '//*[contains(@class, "layout--dcf-fourcol-section")]/div[contains(@class, "layout__region--second")]');
+    $this->assertTrue($element->hasClass('column-class-2'));
+    $element = $page->find('xpath', '//*[contains(@class, "layout--dcf-fourcol-section")]/div[contains(@class, "layout__region--third")]');
+    $this->assertTrue($element->hasClass('column-class-3'));
+    $element = $page->find('xpath', '//*[contains(@class, "layout--dcf-fourcol-section")]/div[contains(@class, "layout__region--fourth")]');
+    $this->assertTrue($element->hasClass('column-class-4'));
   }
 
   /**

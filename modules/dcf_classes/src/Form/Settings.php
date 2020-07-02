@@ -66,6 +66,14 @@ class Settings extends ConfigFormBase {
       $form['section_packages']['#default_value'] = '';
     }
 
+    $form['column'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Column Classes'),
+      '#description' => $this->t('One per line. Do not include a dot.'),
+      '#default_value' => ($config->get('column')) ? implode(PHP_EOL, $config->get('column')) : '',
+      '#rows' => 15,
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -107,6 +115,16 @@ class Settings extends ConfigFormBase {
       }
     }
     $settings->set('section_packages', $section_packages);
+
+    // Column.
+    $column_array = preg_split("[\n|\r]", $values['column']);
+    foreach ($column_array as $key => $class) {
+      if (empty($class)) {
+        unset($column_array[$key]);
+      }
+    }
+    $column_array = array_filter(array_values($column_array));
+    $settings->set('column', $column_array);
 
     $settings->save();
     parent::submitForm($form, $form_state);

@@ -73,6 +73,9 @@ class DcfClassesTest extends BrowserTestBase {
     $test_value = 'Cream|dcf-bleed dcf-wrapper unl-bg-cream dcf-pt-5 dcf-pb-5' . PHP_EOL . 'Scarlet|dcf-bleed dcf-wrapper unl-bg-scarlet dcf-inverse dcf-pt-5 dcf-pb-5';
     $page->fillField('section_packages', $test_value);
 
+    $test_value = 'column-class-1' . PHP_EOL . 'column-class-2' . PHP_EOL . 'column-class-3' . PHP_EOL . 'column-class-4';
+    $page->fillField('column', $test_value);
+
     $page->pressButton('Save configuration');
     $assert_session->pageTextContains('The configuration options have been saved.');
 
@@ -92,6 +95,15 @@ class DcfClassesTest extends BrowserTestBase {
       'Scarlet' => 'dcf-bleed dcf-wrapper unl-bg-scarlet dcf-inverse dcf-pt-5 dcf-pb-5',
     ];
     $stored_value = $config->get('section_packages');
+    $this->assertIdentical($test_value, $stored_value);
+
+    $test_value = [
+      'column-class-1',
+      'column-class-2',
+      'column-class-3',
+      'column-class-4',
+    ];
+    $stored_value = $config->get('column');
     $this->assertIdentical($test_value, $stored_value);
   }
 
