@@ -25,6 +25,7 @@ abstract class DcfLayoutBase extends LayoutDefault implements PluginFormInterfac
       'title_display' => FALSE,
       'section_package' => '',
       'section_classes' => '',
+      'block_margin' => '',
       'section_element_id' => '',
     ];
   }
