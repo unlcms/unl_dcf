@@ -13,6 +13,3 @@ The *DCF CKEditor* module provides CKEditor plugins to integrate with the DCF. C
 
 # DCF Lazy Loading
 The *DCF Lazy Loading* module allows for a site builder to use *DCF Lazy Loading* with Drupal. It supports the base lazying loading functionality where images are loaded prior to entering the viewport. It also provides the ability to automatically calculate the *sizes* attribute based on the parent element.
-
-# DCF Base
-Coming soon! - a Drupal 8 base theme for DCF.
