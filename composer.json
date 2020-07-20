@@ -1,8 +1,8 @@
 {
-    "name": "drupal/dcf",
+    "name": "unlcms/unl_dcf",
     "description": "Provides modules to facilitate DCF implementation in Drupal",
     "type": "drupal-module",
-    "license": "GPL-2.0+",
+    "license": "GPL-2.0-or-later",
     "homepage": "https://www.drupal.org/project/dcf",
     "authors": [
       {
@@ -17,11 +17,11 @@
       }
     ],
     "support": {
-      "issues": "https://www.drupal.org/project/issues/dcf",
-      "source": "https://git.drupalcode.org/project/dcf"
+      "issues": "https://github.com/unlcms/unl_dcf/issues",
+      "source": "https://github.com/unlcms/unl_dcf"
     },
     "require": {
       "drupal/core": "^8.8|^9.0"
     }
   }
-  
+ 
