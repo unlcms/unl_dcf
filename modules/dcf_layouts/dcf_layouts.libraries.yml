@@ -4,3 +4,8 @@ drupal.dialog.off_canvas:
   css:
     component:
       css/off-canvas.form.css: {}
+dcf_onecol:
+  version: VERSION
+  css:
+    theme:
+      css/dcf-onecol.css: {}

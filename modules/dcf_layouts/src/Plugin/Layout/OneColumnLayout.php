@@ -41,6 +41,18 @@ class OneColumnLayout extends DcfLayoutBase {
   public function build(array $regions) {
     $build = parent::build($regions);
 
+    $column_widths = $this->configuration['column_widths'];
+    switch ($column_widths) {
+      case '100':
+        break;
+
+      case '75-centered':
+        $build['#attributes']['class'] = array_merge($build['#attributes']['class'], [
+          'unl-dcf-onecol-75-centered',
+        ]);
+        break;
+    }
+
     $column_classes = $this->configuration['column_classes'];
 
     foreach ($column_classes['col_1'] as $class) {
@@ -56,6 +68,7 @@ class OneColumnLayout extends DcfLayoutBase {
   protected function getWidthOptions() {
     return [
       '100' => '100%',
+      '75-centered' => '75% (centered)',
     ];
   }
 

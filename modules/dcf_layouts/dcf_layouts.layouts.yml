@@ -3,6 +3,7 @@ dcf_onecol_section:
   path: layouts
   template: layout--dcf-onecol-section
   class: '\Drupal\dcf_layouts\Plugin\Layout\OneColumnLayout'
+  library: 'dcf_layouts/dcf_onecol'
   category: 'Columns: 1'
   default_region: first
   icon_map:
