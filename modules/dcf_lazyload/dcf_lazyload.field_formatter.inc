@@ -19,17 +19,6 @@ function dcf_lazyload_field_formatter_third_party_settings_form($plugin, $field_
       '#default_value' => $plugin->getThirdPartySetting('dcf_lazyload', 'dcf_lazyload_enable'),
       '#value_callback' => '_dcf_lazyload_checkbox_boolean',
     ];
-    $element['dcf_lazyload_sizes'] = [
-      '#type' => 'checkbox',
-      '#title' => t('Automatically calculate "sizes" attribute'),
-      '#default_value' => $plugin->getThirdPartySetting('dcf_lazyload', 'dcf_lazyload_sizes'),
-      '#value_callback' => '_dcf_lazyload_checkbox_boolean',
-      '#states' => [
-        'visible' => [
-          ':input[name="fields[field_image][settings_edit_form][third_party_settings][dcf_lazyload][dcf_lazyload_enable]"]' => ['checked' => TRUE],
-        ],
-      ],
-    ];
     return $element;
   }
 }
@@ -41,9 +30,6 @@ function dcf_lazyload_field_formatter_settings_summary_alter(&$summary, $context
   if ($context['formatter']->getPluginId() == 'responsive_image') {
     if ($context['formatter']->getThirdPartySetting('dcf_lazyload', 'dcf_lazyload_enable')) {
       $summary[] = t('DCF lazy loading is enabled.');
-    }
-    if ($context['formatter']->getThirdPartySetting('dcf_lazyload', 'dcf_lazyload_sizes')) {
-      $summary[] = t('"Sizes" attribute is auto-calculated');
     }
   }
 }
@@ -71,12 +57,6 @@ function dcf_lazyload_preprocess_field(&$variables) {
       ) {
       foreach ($variables['items'] as $key => $item) {
         $variables['items'][$key]['content']['#item']->__set('dcf_lazyload_enable', TRUE);
-
-        if (isset($field_display['third_party_settings']['dcf_lazyload']['dcf_lazyload_sizes'])
-          && $field_display['third_party_settings']['dcf_lazyload']['dcf_lazyload_sizes'] == TRUE
-          ) {
-          $variables['items'][$key]['content']['#item']->__set('dcf_lazyload_sizes', TRUE);
-        }
       }
     }
   }

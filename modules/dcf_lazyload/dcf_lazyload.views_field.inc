@@ -56,18 +56,6 @@ function dcf_lazyload_form_views_ui_config_item_form_alter(&$form, FormStateInte
       '#value_callback' => '_dcf_lazyload_checkbox_boolean',
       '#weight' => -9,
     ];
-    $form['options']['settings']['dcf_lazyload_sizes'] = [
-      '#type' => 'checkbox',
-      '#title' => t('Automatically calculate "sizes" attribute'),
-      '#default_value' => (isset($settings['dcf_lazyload_sizes'])) ? $settings['dcf_lazyload_sizes'] : FALSE,
-      '#value_callback' => '_dcf_lazyload_checkbox_boolean',
-      '#weight' => -8,
-      '#states' => [
-        'visible' => [
-          ':input[name="options[settings][dcf_lazyload_enable]"]' => ['checked' => TRUE],
-        ],
-      ],
-    ];
   }
 }
 
@@ -91,7 +79,6 @@ function dcf_lazyload_preprocess_views_view_field(&$variables) {
           // Loop through field value (fields can be multi-value).
           foreach ($field_value as $key => $item) {
             $field_value[$key]['dcf_lazyload_enable'] = (isset($settings['dcf_lazyload_enable'])) ? $settings['dcf_lazyload_enable'] : FALSE;
-            $field_value[$key]['dcf_lazyload_sizes'] = (isset($settings['dcf_lazyload_sizes'])) ? $settings['dcf_lazyload_sizes'] : FALSE;
           }
           // Overwrite field value array with updated value.
           // Attributes will be added by

@@ -149,23 +149,6 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     $this->assertRaw('dcf_lazyload/js/bundle.js');
     $this->assertRaw('dcf_lazyload/css/dcf-lazyload.css');
 
-    // Verify dcf_lazyload_sizes is disabled.
-    $this->assertNoRaw('sizes="auto"');
-
-    // Update display options to enable sizes auto-calculation.
-    $display_options['third_party_settings'] = [
-      'dcf_lazyload' => [
-        'dcf_lazyload_enable' => TRUE,
-        'dcf_lazyload_sizes' => TRUE,
-      ],
-    ];
-    $display->setComponent($this->imageFieldName, $display_options)->save();
-
-    $this->drupalGet('node/' . $nid);
-
-    // Verify dcf_lazyload_sizes is enabled.
-    $this->assertRaw('sizes="auto"');
-
     // Upload an image with a 4x3 ratio.
     $module_path = drupal_get_path('module', 'dcf_lazyload');
     $test_image = new \stdClass();
@@ -319,15 +302,6 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     // Verify JS and CSS are loaded.
     $this->assertRaw('dcf_lazyload/js/bundle.js');
     $this->assertRaw('dcf_lazyload/css/dcf-lazyload.css');
-
-    // Verify dcf_lazyload_sizes is disabled.
-    $this->assertNoRaw('sizes="auto"');
-
-    // Load view with DCF lazyloading enabled with sizes autocalculated.
-    $this->drupalGet('dcf-lazyload-test-view-enabled-sizes');
-
-    // Verify dcf_lazyload_sizes is enabled.
-    $this->assertRaw('sizes="auto"');
   }
 
   /**
