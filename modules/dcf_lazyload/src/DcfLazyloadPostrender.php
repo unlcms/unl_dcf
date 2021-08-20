@@ -57,8 +57,8 @@ class DcfLazyloadPostrender implements TrustedCallbackInterface {
     $no_script_attributes['class'] = array_diff($no_script_attributes['class']->value(), $class_remove);
 
     // Set wrapper classes.
-    $height = $element['#attributes']['data-height'];
-    $width = $element['#attributes']['data-width'];
+    $height = $element['#attributes']['height'];
+    $width = $element['#attributes']['width'];
     $ratio = round($width / $height, 2);
 
     $wrapper_attributes = new Attribute();
@@ -95,10 +95,6 @@ class DcfLazyloadPostrender implements TrustedCallbackInterface {
         $style_string = '<style>.' . $class . '::before { padding-top: ' . $percentage . '%!important; }</style>';
         $wrapper_attributes['class'][] = $class;
     }
-
-    // Remove data-height and data-width attributes prior to printing.
-    unset($element['#attributes']['data-height']);
-    unset($element['#attributes']['data-width']);
 
     return $style_string . '<div' . $wrapper_attributes . '>' . $markup . '<noscript><img' . $no_script_attributes . '></noscript></div>';
   }

@@ -113,6 +113,9 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     $this->assertNoRaw('<noscript>');
     $this->assertNoRaw('dcf-ratio');
     $this->assertNoRaw('dcf-ratio-1x1');
+    // Verify height and width attributes are not set.
+    $this->assertNoRaw('height="640"');
+    $this->assertNoRaw('width="640"');
 
     // Verify JS and CSS are not loaded.
     $this->assertNoRaw('dcf_lazyload/js/bundle.js');
@@ -138,6 +141,9 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     $this->assertRaw('dcf-ratio');
     // Verify ratio class is added to wrapper.
     $this->assertRaw('dcf-ratio-1x1');
+    // Verify height and width attributes are set.
+    $this->assertRaw('height="640"');
+    $this->assertRaw('width="640"');
 
     // Verify JS and CSS are loaded.
     $this->assertRaw('dcf_lazyload/js/bundle.js');
@@ -285,6 +291,9 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     $this->assertNoRaw('<noscript>');
     $this->assertNoRaw('dcf-ratio');
     $this->assertNoRaw('dcf-ratio-1x1');
+    // Verify height and width attributes are set.
+    $this->assertNoRaw('height="640"');
+    $this->assertNoRaw('width="640"');
 
     // Verify JS and CSS are not loaded.
     $this->assertNoRaw('dcf_lazyload/js/bundle.js');
@@ -303,6 +312,9 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     $this->assertRaw('dcf-ratio');
     // Verify ratio class is added to wrapper.
     $this->assertRaw('dcf-ratio-1x1');
+    // Verify height and width attributes are set.
+    $this->assertRaw('height="640"');
+    $this->assertRaw('width="640"');
 
     // Verify JS and CSS are loaded.
     $this->assertRaw('dcf_lazyload/js/bundle.js');

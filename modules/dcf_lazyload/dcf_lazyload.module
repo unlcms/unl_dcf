@@ -57,8 +57,8 @@ function dcf_lazyload_preprocess_responsive_image(&$variables) {
       unset($variables['img_element']['#attributes']['data-sizes']);
     }
 
-    $variables['img_element']['#attributes']['data-width'] = $variables['width'];
-    $variables['img_element']['#attributes']['data-height'] = $variables['height'];
+    $variables['img_element']['#attributes']['width'] = $variables['width'];
+    $variables['img_element']['#attributes']['height'] = $variables['height'];
 
     // #suffix is run through Xss::filterAdmin(), so a post-render function
     // must be used instead to add <noscript>.
