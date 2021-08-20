@@ -1,7 +1,0 @@
-lazyload:
-  version: VERSION
-  css:
-    component:
-      css/dcf-lazyload.css: {}
-  js:
-    js/bundle.js: {}

@@ -63,12 +63,6 @@ function dcf_lazyload_preprocess_responsive_image(&$variables) {
     // #suffix is run through Xss::filterAdmin(), so a post-render function
     // must be used instead to add <noscript>.
     $variables['img_element']['#post_render'][] = [DcfLazyloadPostrender::class, 'dcfLazyloadPostrender'];
-
-    // Load lazyload library if so configured.
-    $config = \Drupal::config('dcf_lazyload.settings');
-    if ($config->get('assets_source') == 'module') {
-      $variables['img_element']['#attached']['library'][] = 'dcf_lazyload/lazyload';
-    }
   }
 }
 

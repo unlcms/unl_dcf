@@ -1,7 +1,0 @@
-dcf_lazyload.config:
-  path: '/admin/config/media/dcf/lazyload'
-  defaults:
-    _form: '\Drupal\dcf_lazyload\Form\Settings'
-    _title: 'DCF Lazy Loading Settings'
-  requirements:
-    _permission: 'administer dcf lazyload'

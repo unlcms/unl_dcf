@@ -117,10 +117,6 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     $this->assertNoRaw('height="640"');
     $this->assertNoRaw('width="640"');
 
-    // Verify JS and CSS are not loaded.
-    $this->assertNoRaw('dcf_lazyload/js/bundle.js');
-    $this->assertNoRaw('dcf_lazyload/css/dcf-lazyload.css');
-
     // Update display options to enable DCF Lazy Loading.
     $display_options['third_party_settings'] = [
       'dcf_lazyload' => [
@@ -144,10 +140,6 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     // Verify height and width attributes are set.
     $this->assertRaw('height="640"');
     $this->assertRaw('width="640"');
-
-    // Verify JS and CSS are loaded.
-    $this->assertRaw('dcf_lazyload/js/bundle.js');
-    $this->assertRaw('dcf_lazyload/css/dcf-lazyload.css');
 
     // Upload an image with a 4x3 ratio.
     $module_path = drupal_get_path('module', 'dcf_lazyload');
@@ -224,19 +216,6 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
 
     // Verify inline CSS is added for non-standard ratio image.
     $this->assertRaw('{ padding-top: 93.07%!important; }');
-
-    // Update config to load assets externally.
-    $config = \Drupal::service('config.factory')->getEditable('dcf_lazyload.settings');
-    $config->set('assets_source', 'external')->save();
-
-    drupal_flush_all_caches();
-
-    $node_storage->resetCache([$nid]);
-    $this->drupalGet('node/' . $nid);
-
-    // Verify JS and CSS are not loaded from DCF Lazy Loading module.
-    $this->assertNoRaw('dcf_lazyload/js/bundle.js');
-    $this->assertNoRaw('dcf_lazyload/css/dcf-lazyload.css');
   }
 
   /**
@@ -278,10 +257,6 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     $this->assertNoRaw('height="640"');
     $this->assertNoRaw('width="640"');
 
-    // Verify JS and CSS are not loaded.
-    $this->assertNoRaw('dcf_lazyload/js/bundle.js');
-    $this->assertNoRaw('dcf_lazyload/css/dcf-lazyload.css');
-
     // Load view with DCF lazyloading enabled.
     $this->drupalGet('dcf-lazyload-test-view-enabled');
 
@@ -298,39 +273,6 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     // Verify height and width attributes are set.
     $this->assertRaw('height="640"');
     $this->assertRaw('width="640"');
-
-    // Verify JS and CSS are loaded.
-    $this->assertRaw('dcf_lazyload/js/bundle.js');
-    $this->assertRaw('dcf_lazyload/css/dcf-lazyload.css');
-  }
-
-  /**
-   * Tests settings form.
-   */
-  public function testSettingsForm() {
-    // Create admin user.
-    $this->adminUser = $this->drupalCreateUser([
-      'access administration pages',
-      'administer dcf lazyload',
-    ]);
-    $this->drupalLogin($this->adminUser);
-
-    $assert_session = $this->assertSession();
-    $page = $this->getSession()->getPage();
-
-    $config = \Drupal::config('dcf_lazyload.settings');
-    $stored_value = $config->get('assets_source');
-    $this->assertIdentical('module', $stored_value);
-
-    $this->drupalGet('admin/config/media/dcf/lazyload');
-
-    $page->fillField('assets_source', 'external');
-    $page->pressButton('Save configuration');
-    $assert_session->pageTextContains('The configuration options have been saved.');
-
-    $config = \Drupal::config('dcf_lazyload.settings');
-    $stored_value = $config->get('assets_source');
-    $this->assertIdentical('external', $stored_value);
   }
 
 }
