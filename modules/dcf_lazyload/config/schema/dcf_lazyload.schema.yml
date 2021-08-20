@@ -5,9 +5,6 @@ dcf_lazyload_base:
     dcf_lazyload_enable:
       type: boolean
       label: 'DCF Lazy Load enabled'
-    dcf_lazyload_sizes:
-      type: boolean
-      label: 'DCF Lazy Loading auto-calculate sizes enabled'
 
 field.formatter.third_party.dcf_lazyload:
   type: dcf_lazyload_base
@@ -30,9 +27,6 @@ field.formatter.settings.responsive_image:
     dcf_lazyload_enable:
       type: boolean
       label: 'DCF Lazy Load enabled'
-    dcf_lazyload_sizes:
-      type: boolean
-      label: 'DCF Lazy Loading auto-calculate sizes enabled'
 
 dcf_lazyload.settings:
   type: config_object
