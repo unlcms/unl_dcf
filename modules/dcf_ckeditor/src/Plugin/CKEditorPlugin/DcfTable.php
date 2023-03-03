@@ -20,7 +20,7 @@ class DcfTable extends CKEditorPluginBase implements CKEditorPluginContextualInt
    * {@inheritdoc}
    */
   public function getFile() {
-    $module_path = drupal_get_path('module', 'dcf_ckeditor');
+    $module_path = \Drupal::service('extension.list.module')->getPath('dcf_ckeditor');
     return $module_path . '/js/plugin/dcf_table/plugin.js';
   }
 

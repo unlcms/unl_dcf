@@ -78,7 +78,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
 
     // Create image object from fixture image file.
     // Use 1x1 ratio test image.
-    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    \Drupal::service('extension.list.module')->getPath('dcf_lazyload');
     $test_image = new \stdClass();
     $test_image->uri = $module_path . '/tests/fixtures/test_image_1x1.jpg';
 
@@ -142,7 +142,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     $this->assertRaw('width="640"');
 
     // Upload an image with a 4x3 ratio.
-    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    \Drupal::service('extension.list.module')->getPath('dcf_lazyload');
     $test_image = new \stdClass();
     $test_image->uri = $module_path . '/tests/fixtures/test_image_4x3.jpg';
 
@@ -157,7 +157,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     $this->assertRaw('dcf-ratio-4x3');
 
     // Upload an image with a 3x4 ratio.
-    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    \Drupal::service('extension.list.module')->getPath('dcf_lazyload');
     $test_image = new \stdClass();
     $test_image->uri = $module_path . '/tests/fixtures/test_image_3x4.jpg';
 
@@ -172,7 +172,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     $this->assertRaw('dcf-ratio-3x4');
 
     // Upload an image with a 16x9 ratio.
-    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    \Drupal::service('extension.list.module')->getPath('dcf_lazyload');
     $test_image = new \stdClass();
     $test_image->uri = $module_path . '/tests/fixtures/test_image_16x9.jpg';
 
@@ -187,7 +187,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     $this->assertRaw('dcf-ratio-16x9');
 
     // Upload an image with a 9x16 ratio.
-    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    \Drupal::service('extension.list.module')->getPath('dcf_lazyload');
     $test_image = new \stdClass();
     $test_image->uri = $module_path . '/tests/fixtures/test_image_9x16.jpg';
 
@@ -202,7 +202,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
     $this->assertRaw('dcf-ratio-9x16');
 
     // Upload an image with a non-standard ratio to a new article node.
-    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    \Drupal::service('extension.list.module')->getPath('dcf_lazyload');
     $test_image = new \stdClass();
     $test_image->uri = $module_path . '/tests/fixtures/test_image_non_standard_ratio.jpg';
 
@@ -222,7 +222,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
    * Tests views field formatter settings and markup rendering.
    */
   public function testResponsiveViewField() {
-    $config_path = drupal_get_path('module', 'dcf_lazyload_test') . '/config/optional';
+    $config_path = \Drupal::service('extension.list.module')->getPath('dcf_lazyload_test') . '/config/optional';
     $config_source = new FileStorage($config_path);
     \Drupal::service('config.installer')->installOptionalConfig($config_source);
     drupal_flush_all_caches();
@@ -231,7 +231,7 @@ class DcfLazyLoadTest extends ImageFieldTestBase {
 
     // Create image object from fixture image file.
     // Use 1x1 ratio test image.
-    $module_path = drupal_get_path('module', 'dcf_lazyload');
+    \Drupal::service('extension.list.module')->getPath('dcf_lazyload');
     $test_image = new \stdClass();
     $test_image->uri = $module_path . '/tests/fixtures/test_image_1x1.jpg';
 
