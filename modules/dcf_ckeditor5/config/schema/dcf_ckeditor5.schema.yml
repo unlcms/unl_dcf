@@ -1,0 +1,11 @@
+# Plugin \Drupal\dcf_ckeditor5\Plugin\CKEditor5Plugin\DcfBasePlugin
+ckeditor5.plugin.dcf_base:
+  type: mapping
+  label: 'DCF CKEditor5 Base configuration'
+  mapping:
+    enabled_plugins:
+      type: sequence
+      label: 'Enabled Plugins'
+      sequence:
+        type: string
+        lable: 'Plugin Enabled/Disabled'
